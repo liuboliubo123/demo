@@ -4,6 +4,8 @@ import {
   Bath,
   CalendarCheck,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   Heart,
   MapPin,
@@ -50,6 +52,21 @@ const reviews = [
   {
     name: "小满主人",
     text: "猫咪比较怕生，但这里节奏很温柔，回家后状态也很好。",
+  },
+];
+
+const heroSlides = [
+  {
+    src: "/images/hero-grooming.png",
+    alt: "\u660e\u4eae\u6e29\u6696\u7684\u5ba0\u7269\u6d17\u62a4\u5e97\u91cc\uff0c\u4e00\u53ea\u521a\u6d17\u62a4\u597d\u7684\u5c0f\u72d7\u5750\u5728\u62a4\u7406\u533a\u65c1",
+  },
+  {
+    src: "/images/hero-cat.png",
+    alt: "\u6e29\u6696\u5e72\u51c0\u7684\u5ba0\u7269\u6d17\u62a4\u5e97\u91cc\uff0c\u4e00\u53ea\u68b3\u7406\u597d\u7684\u6a58\u8272\u957f\u6bdb\u732b\u8db4\u5728\u67d4\u8f6f\u6bdb\u5dfe\u4e0a",
+  },
+  {
+    src: "/images/hero-dogs.png",
+    alt: "\u660e\u4eae\u5ba0\u7269\u6d17\u62a4\u7a7a\u95f4\u91cc\uff0c\u4e24\u53ea\u521a\u62a4\u7406\u597d\u7684\u5c0f\u578b\u72ac\u5b89\u9759\u5750\u5728\u4e00\u8d77",
   },
 ];
 
@@ -117,10 +134,56 @@ function Hero() {
           </span>
         </div>
       </div>
-      <div className="hero-media" aria-label="宠物洗护店环境照片">
-        <img src="/images/hero-grooming.png" alt="明亮温暖的宠物洗护店里，一只刚洗护好的小狗坐在护理区旁" />
-      </div>
+      <HeroCarousel />
     </section>
+  );
+}
+
+function HeroCarousel() {
+  const [activeSlide, setActiveSlide] = React.useState(0);
+
+  React.useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % heroSlides.length);
+    }, 4500);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  const showPrevious = () => {
+    setActiveSlide((current) => (current - 1 + heroSlides.length) % heroSlides.length);
+  };
+
+  const showNext = () => {
+    setActiveSlide((current) => (current + 1) % heroSlides.length);
+  };
+
+  return (
+    <div className="hero-media carousel" aria-roledescription="carousel" aria-label={"\u5ba0\u7269\u6d17\u62a4\u5e97\u73af\u5883\u7167\u7247\u8f6e\u64ad"}>
+      <div className="carousel-track" style={{ transform: `translateX(-${activeSlide * 100}%)` }}>
+        {heroSlides.map((slide) => (
+          <img key={slide.src} src={slide.src} alt={slide.alt} />
+        ))}
+      </div>
+      <button className="carousel-button carousel-button-prev" type="button" onClick={showPrevious} aria-label={"\u4e0a\u4e00\u5f20\u56fe\u7247"}>
+        <ChevronLeft size={22} aria-hidden="true" />
+      </button>
+      <button className="carousel-button carousel-button-next" type="button" onClick={showNext} aria-label={"\u4e0b\u4e00\u5f20\u56fe\u7247"}>
+        <ChevronRight size={22} aria-hidden="true" />
+      </button>
+      <div className="carousel-dots" aria-label={"\u9009\u62e9\u8f6e\u64ad\u56fe\u7247"}>
+        {heroSlides.map((slide, index) => (
+          <button
+            key={slide.src}
+            className={index === activeSlide ? "carousel-dot active" : "carousel-dot"}
+            type="button"
+            onClick={() => setActiveSlide(index)}
+            aria-label={`\u67e5\u770b\u7b2c ${index + 1} \u5f20\u56fe\u7247`}
+            aria-current={index === activeSlide}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 

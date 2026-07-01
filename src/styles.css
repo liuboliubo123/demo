@@ -210,6 +210,73 @@ p {
   object-fit: cover;
 }
 
+.carousel-track {
+  display: flex;
+  transition: transform 600ms ease;
+}
+
+.carousel-track img {
+  flex: 0 0 100%;
+}
+
+.carousel-button {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: #2f7353;
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid rgba(63, 143, 104, 0.18);
+  border-radius: 999px;
+  box-shadow: 0 12px 28px rgba(37, 52, 45, 0.18);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.carousel-button:hover {
+  color: #fff;
+  background: #3f8f68;
+}
+
+.carousel-button-prev {
+  left: 14px;
+}
+
+.carousel-button-next {
+  right: 14px;
+}
+
+.carousel-dots {
+  position: absolute;
+  right: 0;
+  bottom: 18px;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(47, 115, 83, 0.32);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.carousel-dot.active {
+  width: 26px;
+  background: #3f8f68;
+  border-color: #3f8f68;
+}
+
 .section {
   width: min(1120px, calc(100% - 40px));
   margin: 0 auto;

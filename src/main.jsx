@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import {
   buildInfiniteSlides,
+  getNextTrackPosition,
+  getPreviousTrackPosition,
   getRealSlideIndex,
   resolveInfiniteLoopPosition,
 } from "./carouselLogic.mjs";
@@ -148,34 +150,62 @@ function HeroCarousel() {
   const [trackPosition, setTrackPosition] = React.useState(heroSlides.length > 1 ? 1 : 0);
   const [isPaused, setIsPaused] = React.useState(false);
   const [isTransitionEnabled, setIsTransitionEnabled] = React.useState(true);
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
+  const isTransitioningRef = React.useRef(false);
   const trackSlides = React.useMemo(() => buildInfiniteSlides(heroSlides), []);
   const activeSlide = getRealSlideIndex(trackPosition, heroSlides.length);
 
+  const beginTransition = () => {
+    isTransitioningRef.current = true;
+    setIsTransitioning(true);
+  };
+
+  const endTransition = () => {
+    isTransitioningRef.current = false;
+    setIsTransitioning(false);
+  };
+
   React.useEffect(() => {
-    if (isPaused || heroSlides.length <= 1) {
+    if (isPaused || isTransitioning || heroSlides.length <= 1) {
       return undefined;
     }
 
     const intervalId = window.setInterval(() => {
       setIsTransitionEnabled(true);
-      setTrackPosition((current) => current + 1);
+      beginTransition();
+      setTrackPosition((current) => getNextTrackPosition(current, heroSlides.length, false));
     }, 4500);
 
     return () => window.clearInterval(intervalId);
-  }, [isPaused]);
+  }, [isPaused, isTransitioning]);
 
   const showPrevious = () => {
+    if (isTransitioningRef.current) {
+      return;
+    }
+
     setIsTransitionEnabled(true);
-    setTrackPosition((current) => current - 1);
+    beginTransition();
+    setTrackPosition((current) => getPreviousTrackPosition(current, heroSlides.length, false));
   };
 
   const showNext = () => {
+    if (isTransitioningRef.current) {
+      return;
+    }
+
     setIsTransitionEnabled(true);
-    setTrackPosition((current) => current + 1);
+    beginTransition();
+    setTrackPosition((current) => getNextTrackPosition(current, heroSlides.length, false));
   };
 
   const showSlide = (index) => {
+    if (isTransitioningRef.current || index === activeSlide) {
+      return;
+    }
+
     setIsTransitionEnabled(true);
+    beginTransition();
     setTrackPosition(index + 1);
   };
 
@@ -186,9 +216,11 @@ function HeroCarousel() {
     );
 
     if (!shouldDisableTransition) {
+      endTransition();
       return;
     }
 
+    endTransition();
     setIsTransitionEnabled(false);
     setTrackPosition(nextPosition);
     window.requestAnimationFrame(() => {
@@ -202,6 +234,7 @@ function HeroCarousel() {
       aria-roledescription="carousel"
       aria-label={"\u5ba0\u7269\u6d17\u62a4\u5e97\u73af\u5883\u7167\u7247\u8f6e\u64ad"}
       data-paused={isPaused}
+      data-transitioning={isTransitioning}
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
       onMouseEnter={() => setIsPaused(true)}
@@ -218,10 +251,10 @@ function HeroCarousel() {
           <img key={`${slide.src}-${index}`} src={slide.src} alt={slide.alt} />
         ))}
       </div>
-      <button className="carousel-button carousel-button-prev" type="button" onClick={showPrevious} aria-label={"\u4e0a\u4e00\u5f20\u56fe\u7247"}>
+      <button className="carousel-button carousel-button-prev" type="button" onClick={showPrevious} disabled={isTransitioning} aria-label={"\u4e0a\u4e00\u5f20\u56fe\u7247"}>
         <ChevronLeft size={22} aria-hidden="true" />
       </button>
-      <button className="carousel-button carousel-button-next" type="button" onClick={showNext} aria-label={"\u4e0b\u4e00\u5f20\u56fe\u7247"}>
+      <button className="carousel-button carousel-button-next" type="button" onClick={showNext} disabled={isTransitioning} aria-label={"\u4e0b\u4e00\u5f20\u56fe\u7247"}>
         <ChevronRight size={22} aria-hidden="true" />
       </button>
       <div className="carousel-dots" aria-label={"\u9009\u62e9\u8f6e\u64ad\u56fe\u7247"}>
@@ -231,6 +264,7 @@ function HeroCarousel() {
             className={index === activeSlide ? "carousel-dot active" : "carousel-dot"}
             type="button"
             onClick={() => showSlide(index)}
+            disabled={isTransitioning}
             aria-label={`\u67e5\u770b\u7b2c ${index + 1} \u5f20\u56fe\u7247`}
             aria-current={index === activeSlide}
           />

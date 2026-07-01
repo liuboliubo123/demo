@@ -49,3 +49,18 @@ export function resolveInfiniteLoopPosition(trackPosition, slideCount) {
     shouldDisableTransition: false,
   };
 }
+export function getNextTrackPosition(trackPosition, slideCount, isTransitioning) {
+  if (slideCount <= 1 || isTransitioning) {
+    return trackPosition;
+  }
+
+  return Math.min(trackPosition + 1, slideCount + 1);
+}
+
+export function getPreviousTrackPosition(trackPosition, slideCount, isTransitioning) {
+  if (slideCount <= 1 || isTransitioning) {
+    return trackPosition;
+  }
+
+  return Math.max(trackPosition - 1, 0);
+}

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildInfiniteSlides,
+  getNextTrackPosition,
   getRealSlideIndex,
   resolveInfiniteLoopPosition,
 } from "../src/carouselLogic.mjs";
@@ -38,4 +39,12 @@ test("jumps from cloned slides back to real slides without animation", () => {
     nextPosition: 2,
     shouldDisableTransition: false,
   });
+});
+
+test("ignores repeated next clicks while a slide transition is active", () => {
+  const slideCount = slides.length;
+  const firstClickTarget = getNextTrackPosition(3, slideCount, false);
+
+  assert.equal(firstClickTarget, 4);
+  assert.equal(getNextTrackPosition(firstClickTarget, slideCount, true), 4);
 });

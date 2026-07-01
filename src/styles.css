@@ -246,6 +246,11 @@ p {
   background: #3f8f68;
 }
 
+.carousel-button:disabled,
+.carousel-dot:disabled {
+  cursor: default;
+}
+
 .carousel-button-prev {
   left: 14px;
 }

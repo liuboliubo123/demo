@@ -215,6 +215,10 @@ p {
   transition: transform 600ms ease;
 }
 
+.carousel-track.no-transition {
+  transition: none;
+}
+
 .carousel-track img {
   flex: 0 0 100%;
 }

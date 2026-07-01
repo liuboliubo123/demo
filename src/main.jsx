@@ -15,6 +15,11 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
+import {
+  buildInfiniteSlides,
+  getRealSlideIndex,
+  resolveInfiniteLoopPosition,
+} from "./carouselLogic.mjs";
 import "./styles.css";
 
 const services = [
@@ -140,29 +145,77 @@ function Hero() {
 }
 
 function HeroCarousel() {
-  const [activeSlide, setActiveSlide] = React.useState(0);
+  const [trackPosition, setTrackPosition] = React.useState(heroSlides.length > 1 ? 1 : 0);
+  const [isPaused, setIsPaused] = React.useState(false);
+  const [isTransitionEnabled, setIsTransitionEnabled] = React.useState(true);
+  const trackSlides = React.useMemo(() => buildInfiniteSlides(heroSlides), []);
+  const activeSlide = getRealSlideIndex(trackPosition, heroSlides.length);
 
   React.useEffect(() => {
+    if (isPaused || heroSlides.length <= 1) {
+      return undefined;
+    }
+
     const intervalId = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % heroSlides.length);
+      setIsTransitionEnabled(true);
+      setTrackPosition((current) => current + 1);
     }, 4500);
 
     return () => window.clearInterval(intervalId);
-  }, []);
+  }, [isPaused]);
 
   const showPrevious = () => {
-    setActiveSlide((current) => (current - 1 + heroSlides.length) % heroSlides.length);
+    setIsTransitionEnabled(true);
+    setTrackPosition((current) => current - 1);
   };
 
   const showNext = () => {
-    setActiveSlide((current) => (current + 1) % heroSlides.length);
+    setIsTransitionEnabled(true);
+    setTrackPosition((current) => current + 1);
+  };
+
+  const showSlide = (index) => {
+    setIsTransitionEnabled(true);
+    setTrackPosition(index + 1);
+  };
+
+  const handleTransitionEnd = () => {
+    const { nextPosition, shouldDisableTransition } = resolveInfiniteLoopPosition(
+      trackPosition,
+      heroSlides.length,
+    );
+
+    if (!shouldDisableTransition) {
+      return;
+    }
+
+    setIsTransitionEnabled(false);
+    setTrackPosition(nextPosition);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => setIsTransitionEnabled(true));
+    });
   };
 
   return (
-    <div className="hero-media carousel" aria-roledescription="carousel" aria-label={"\u5ba0\u7269\u6d17\u62a4\u5e97\u73af\u5883\u7167\u7247\u8f6e\u64ad"}>
-      <div className="carousel-track" style={{ transform: `translateX(-${activeSlide * 100}%)` }}>
-        {heroSlides.map((slide) => (
-          <img key={slide.src} src={slide.src} alt={slide.alt} />
+    <div
+      className="hero-media carousel"
+      aria-roledescription="carousel"
+      aria-label={"\u5ba0\u7269\u6d17\u62a4\u5e97\u73af\u5883\u7167\u7247\u8f6e\u64ad"}
+      data-paused={isPaused}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onPointerEnter={() => setIsPaused(true)}
+      onPointerLeave={() => setIsPaused(false)}
+    >
+      <div
+        className={isTransitionEnabled ? "carousel-track" : "carousel-track no-transition"}
+        style={{ transform: `translateX(-${trackPosition * 100}%)` }}
+        onTransitionEnd={handleTransitionEnd}
+      >
+        {trackSlides.map((slide, index) => (
+          <img key={`${slide.src}-${index}`} src={slide.src} alt={slide.alt} />
         ))}
       </div>
       <button className="carousel-button carousel-button-prev" type="button" onClick={showPrevious} aria-label={"\u4e0a\u4e00\u5f20\u56fe\u7247"}>
@@ -177,7 +230,7 @@ function HeroCarousel() {
             key={slide.src}
             className={index === activeSlide ? "carousel-dot active" : "carousel-dot"}
             type="button"
-            onClick={() => setActiveSlide(index)}
+            onClick={() => showSlide(index)}
             aria-label={`\u67e5\u770b\u7b2c ${index + 1} \u5f20\u56fe\u7247`}
             aria-current={index === activeSlide}
           />

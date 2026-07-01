@@ -127,6 +127,7 @@ h1 {
 
 h2 {
   margin-bottom: 0.8rem;
+  color: #f2c94c;
   font-size: clamp(2rem, 4vw, 3.35rem);
   line-height: 1.05;
   letter-spacing: 0;
